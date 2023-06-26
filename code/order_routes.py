@@ -89,6 +89,95 @@ async def list_all_orders(Authorize:AuthJWT=Depends()):
         )
 
 
+#8
+
+@order_router.get('/orders/{id}')
+async def get_order_by_id(id:int,Authorize:AuthJWT=Depends()):
+    try:
+        Authorize.jwt_required()
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Token"
+        )
+
+    user=Authorize.get_jwt_subject()
+
+    current_user=session.query(User).filter(User.username==user).first()
+
+    if current_user.is_staff:
+        order=session.query(Order).filter(Order.id==id).first()
+
+        return jsonable_encoder(order)
+    
+    raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not allowed to carry out request"
+        )
+
+#9
+
+@order_router.get('/user/orders')
+async def get_user_orders(Authorize:AuthJWT=Depends()):
+    try:
+        Authorize.jwt_required()
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Token"
+        )
+    
+    user=Authorize.get_jwt_subject()
+
+    current_user=session.query(User).filter(User.username==user).first()
+
+    return jsonable_encoder(current_user.orders)
+
+#10
+
+@order_router.get('/user/order/{id}/',)
+async def get_specific_order(id:int,Authorize:AuthJWT=Depends()):
+    try:
+        Authorize.jwt_required()
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Token"
+        )
+
+    subject=Authorize.get_jwt_subject()
+
+    current_user=session.query(User).filter(User.username==subject).first()
+
+    orders=current_user.orders
+
+    for o in orders:
+        if o.id == id:
+            return jsonable_encoder(o)
+        
+    raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+        detail="No order with such id"
+    )
+    
+
+#11
+@order_router.put('/order/update/{id}/')
+async def update_order(id:int, order:OrderModel, Authorize:AuthJWT=Depends()):
+    try:
+        Authorize.jwt_required()
+
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Token"
+        )
+    
+    order_to_update=session.query(Order).filter(Order.id==id).first()
+
+    order_to_update.quantity=order.quantity
+    order_to_update.bag_size=order.bag_size
+
+    session.commit()
+
+    return jsonable_encoder(order_to_update)
 
 
-
+#12
