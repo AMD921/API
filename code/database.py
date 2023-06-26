@@ -6,5 +6,5 @@ engine = create_engine('postgresql://postgres:1887@localhost/pashmak',
 
 Base = declarative_base()
 
-Session = sessionmaker()
+Session = sessionmaker() 
 
