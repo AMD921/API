@@ -27,7 +27,7 @@ class SignUpModel(BaseModel):
                 "first_name:":"Amin Mohammad",
                 "last_name":"Davoudi",
                 "address":"Chalous",
-                "phone":'09197761148',
+                "phone":"09197761148",
                 "is_staff":False,
                 "is_active":True
             }
