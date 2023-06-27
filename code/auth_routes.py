@@ -14,12 +14,39 @@ auth_router=APIRouter(
     tags=['auth']
 
 )
+"""
+API router for handling authentication-related routes.
 
+The `auth_router` is an instance of `APIRouter` that groups the authentication routes under the '/auth' prefix.
+It is used to define and organize the authentication endpoints.
+"""
 
 session=Session(bind=engine)
+"""
+Create a database session using the SQLAlchemy session factory.
+
+The `Session` object represents a database session and is created by calling the session factory (`Session`) with the database engine (`engine`) as the binding.
+The session is used for interacting with the database, such as querying and modifying data.
+"""
 
 @auth_router.get('/')
 async def hello(Authorize:AuthJWT=Depends()):
+    """
+    Sample route that requires authentication.
+
+    This route requires a valid JWT access token for authorization.
+    If the access token is valid, it returns a JSON response with a 'message' key set to 'Hello World'.
+    If the access token is missing or invalid, it raises an HTTPException with a status code 401 (Unauthorized).
+
+    Parameters:
+    - Authorize (AuthJWT): The AuthJWT instance used for handling JWT authorization.
+
+    Returns:
+    - dict: A JSON response containing a 'message' key set to 'Hello World'.
+
+    Raises:
+    - HTTPException: If the access token is missing or invalid.
+    """
     try:
         Authorize.jwt_required() #! 5: min 21:00
 
@@ -35,6 +62,23 @@ async def hello(Authorize:AuthJWT=Depends()):
     status_code=status.HTTP_201_CREATED
 )
 async def signup(user:SignUpModel):
+    """
+    Route for user signup.
+
+    This route creates a new user based on the provided signup data.
+    It performs validation checks to ensure that the username and email are unique.
+    If the validation passes, it creates a new user record in the database.
+    If the validation fails, it raises an HTTPException with a status code 400 (Bad Request).
+
+    Parameters:
+    - user (SignUpModel): The signup data submitted by the user.
+
+    Returns:
+    - User: The created user object.
+
+    Raises:
+    - HTTPException: If the username or email already exists.
+    """
     db_email=session.query(User).filter(User.email == user.email).first()
 
     if db_email is not None:
@@ -72,6 +116,24 @@ async def signup(user:SignUpModel):
 
 @auth_router.post('/login')
 async def login(user:LoginModel,Authorize:AuthJWT=Depends()):
+    """
+    Route for user login.
+
+    This route handles user authentication by validating the provided username and password.
+    If the credentials are valid, it generates JWT access and refresh tokens and returns them in a JSON response.
+    If the credentials are invalid, it raises an HTTPException with a status code 400 (Bad Request).
+
+    Parameters:
+    - user (LoginModel): The login credentials submitted by the user.
+    - Authorize (AuthJWT): The AuthJWT instance used for handling JWT authorization.
+
+    Returns:
+    - dict: A JSON response containing the access and refresh tokens.
+
+    Raises:
+    - HTTPException: If the username or password is invalid.
+    """
+
     db_user=session.query(User).filter(User.username==user.username).first()
 
     if db_user and check_password_hash(db_user.password, user.password):
@@ -94,6 +156,22 @@ async def login(user:LoginModel,Authorize:AuthJWT=Depends()):
 
 @auth_router.get('/refresh')
 async def refresh_token(Authorize:AuthJWT=Depends()):
+    """
+    Route for refreshing access tokens.
+
+    This route handles refreshing access tokens by validating the provided refresh token.
+    If the refresh token is valid, it generates a new access token and returns it in a JSON response.
+    If the refresh token is invalid, it raises an HTTPException with a status code 401 (Unauthorized).
+
+    Parameters:
+    - Authorize (AuthJWT): The AuthJWT instance used for handling JWT authorization.
+
+    Returns:
+    - dict: A JSON response containing the new access token.
+
+    Raises:
+    - HTTPException: If the refresh token is invalid.
+    """
     try:
         Authorize.jwt_refresh_token_required()
 
